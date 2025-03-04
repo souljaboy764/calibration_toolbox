@@ -142,8 +142,8 @@ def main():
 
     parser = argparse.ArgumentParser(description='Calibration Node')
     parser.add_argument('--data_path', type=str, required=True, help='Path to save calibration data')
-    parser.add_argument('--aruco_image_topic', type=str, default="/aruco_image", help='ROS topic for the aruco image')
-    parser.add_argument('--aruco_pose_topic', type=str, default="/aruco_poses", help='ROS topic for the aruco pose')
+    parser.add_argument('--aruco_image_topic', type=str, default="/aruco/image", help='ROS topic for the aruco image')
+    parser.add_argument('--aruco_pose_topic', type=str, default="/aruco/poses", help='ROS topic for the aruco pose')
     parser.add_argument('--ee_frame', type=str, default="panda_hand", help='End effector frame name')
     parser.add_argument('--base_frame', type=str, default="panda_link0", help='Base frame name')
     parser.add_argument('--num_poses', type=int, default=20, help='Number of calibration poses to use')

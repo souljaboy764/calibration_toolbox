@@ -67,6 +67,9 @@ class AXXBCalibrator(object):
                     robotpose = [float (x) for x in robotpose_str if x != '']
                     assert len(robotpose) == 16
                     robotpose = np.reshape(np.array(robotpose), (4, 4))
+                    if(np.isnan(robotpose).any() or np.isnan(robotpose).any()):
+                        print("Nan in robotpose",file_robot)
+                        continue
                 self.robot_poses.append(robotpose)
 
                 # marker pose in camera frame
@@ -75,6 +78,9 @@ class AXXBCalibrator(object):
                     markerpose = [float(x) for x in markerpose_str if x != '']
                     assert len(markerpose) == 16
                     markerpose = np.reshape(np.array(markerpose), (4, 4))
+                    if(np.isnan(markerpose).any() or np.isnan(markerpose).any()):
+                        print("Nan in markerpose", marker_pose_file)
+                        continue
                 self.marker_poses.append(markerpose)
     
     def axxb(self):
@@ -116,7 +122,7 @@ class AXXBCalibrator(object):
             # Bad pair of transformation are very close in the orientation.
             # They will give nan result
             if np.sum(np.isnan(alpha[:, i])) + np.sum(np.isnan(beta[:, i])) > 0:
-                nan_num += 1
+                # nan_num += 1
                 continue
             else:
                 M += np.outer(beta[:, i], alpha[:, i])
