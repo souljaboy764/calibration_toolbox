@@ -83,7 +83,7 @@ class AXXBCalibrator(object):
                         continue
                 self.marker_poses.append(markerpose)
     
-    def axxb(self):
+    def axxb(self, T_optical_to_baselink=None):
         """
         AX=XB solver.
         
@@ -144,6 +144,9 @@ class AXXBCalibrator(object):
         
         self.calib_pose = np.c_[R, t]
         self.calib_pose = np.r_[self.calib_pose, [[0, 0, 0, 1]]]
+        
+        if T_optical_to_baselink is not None:
+            self.calib_pose = np.matmul(self.calib_pose, T_optical_to_baselink)
 
         print ("Calibration Result:\n", self.calib_pose)
 
