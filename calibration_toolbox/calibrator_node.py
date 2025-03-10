@@ -10,19 +10,16 @@ import cv2
 import os
 import argparse
 
-import rclpy
-from rclpy.node import Node
+import rospy
 import tf2_ros
-from rclpy.node import Node
 
 from calibration_toolbox.utils import *
 from calibration_toolbox.aruco import ArUco
 
 
-class CalibrationNode(Node):
+class CalibrationNode():
     
     def __init__(self, args):
-        super().__init__('calibration_node')
         
         self.data_path = args.data_path
 
@@ -46,8 +43,6 @@ class CalibrationNode(Node):
 
     def get_marker_2_cam(self):
         """Get the transformation of the marker in camera frame."""
-
-        rclpy.spin_once(self, timeout_sec=0.5)
 
         markerIncam_pos, markerIncam_quat, aruco_img = self.camera_handler.get_pose()
 
@@ -98,27 +93,23 @@ class CalibrationNode(Node):
         """Collect data for calibration."""        
         self.get_logger().info("Ready to collect data...")
         
-        time.sleep(0.5)
-        rclpy.spin_once(self, timeout_sec=0.5)
+        rospy.Rate(1).sleep()
+        rate = rospy.Rate(10)
         
         complete_point_num = 0
         while(complete_point_num < self.num_poses):
 
             input("Please move the robot to a new pose and press Enter to continue...")
 
-            time.sleep(2.)
-            # tf2_ros.TransformListenersleep(3.0)
-            # Needed for updating subscriber as it is currently blocking
-            for i in range(100):
-                rclpy.spin_once(self, timeout_sec=0.01)
-            print('finished spinning')
+            for i in range(10):
+                rate.sleep()
 
             # Marker Pose and Image
             marker_pose, aruco_img = self.get_marker_2_cam()
 
             if marker_pose is not None:
                 # Robot Pose
-                transform_ros = self.tfBuffer.lookup_transform(self.base_frame_name, self.ee_frame_name, rclpy.time.Time())
+                transform_ros = self.tfBuffer.lookup_transform(self.base_frame_name, self.ee_frame_name, rospy.Time(0))
 
                 pos_ros = transform_ros.transform.translation
                 quat_ros = transform_ros.transform.rotation
@@ -134,7 +125,7 @@ class CalibrationNode(Node):
                 print ("===============================")
             else:
                 print ("Marker pose is None! The camera probably cannot see it!")
-            rclpy.spin_once(self, timeout_sec=1)
+            rate.sleep()
 
         self.get_logger().info("Successfully collect data! Proceed to calibrate data.")
 
@@ -150,7 +141,7 @@ def main():
     
     args = parser.parse_args()
 
-    rclpy.init()
+    rospy.init_node('calibration_node', anonymous=True)
     CC = CalibrationNode(args)
     CC.run()
 

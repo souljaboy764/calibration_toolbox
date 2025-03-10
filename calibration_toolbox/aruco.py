@@ -6,6 +6,8 @@
 from geometry_msgs.msg import PoseStamped, PoseArray
 from sensor_msgs.msg import Image
 
+import rospy
+
 from threading import Lock
 import numpy as np
 import time
@@ -19,14 +21,13 @@ from rclpy.node import Node
 class ArUco:
     """Class to interact with ArUco tag."""
 
-    def __init__(self, node: Node, args):
+    def __init__(self, args):
         self.pose_topic = args.aruco_pose_topic
         self.aruco_img_topic = args.aruco_image_topic
-        self.node = node
-        self._aruco_img_sub = self.node.create_subscription(Image, self.aruco_img_topic, self._arucoimgCb, 10)
-        self._pose_sub = self.node.create_subscription(PoseArray, self.pose_topic, self._poseInfoCb, 10)
-        self.node.get_logger().info("Created subscribers for ArUco node")
-
+        self._aruco_img_sub = rospy .Subscriber(self.aruco_img_topic, Image, self._arucoimgCb)
+        self._pose_sub = rospy.Subscriber(self.pose_topic, PoseArray, self._poseInfoCb)
+        rospy.loginfo("Created subscribers for ArUco node")
+        
         self.pose_x = None
         self.pose_y = None
         self.pose_z = None
@@ -42,15 +43,15 @@ class ArUco:
 
         self.mutex = Lock()
         self._bridge = CvBridge()
-        self.node.get_logger().info("ArUco node is ready")
+        rospy.loginfo("ArUco node is ready")
 
     def _poseInfoCb(self, msg):
         """Pose callback function."""
 
         if msg is None:
-            self.node.get_logger().info("_poseInfoCb: msg is None!")
+            rospy.loginfo("_poseInfoCb: msg is None!")
         else:
-            self.node.get_logger().info(f"_poseInfoCb: got msg with size {len(msg.poses)}")
+            rospy.loginfo(f"_poseInfoCb: got msg with size {len(msg.poses)}")
         with self.mutex:
             self.pose_x = msg.poses[0].position.x
             self.pose_y = msg.poses[0].position.y
@@ -66,7 +67,7 @@ class ArUco:
         """Image callback function."""
 
         if msg is None:
-            self.node.get_logger().warning("_arucoimgCb: msg is None !!!!!!!!!")
+            rospy.logwarn("_arucoimgCb: msg is None !!!!!!!!!")
         try:
             cv_image = self._bridge.imgmsg_to_cv2(msg, "rgb8")
             # decode the data, this will take some time
@@ -80,7 +81,7 @@ class ArUco:
             with self.mutex:
                 self.aruco_img = cv_image
         except CvBridgeError as e:
-            self.node.get_logger().warning(str(e))
+            rospy.logwarn(str(e))
 
     def get_pose(self):
         """Get the pose of the current frame."""
