@@ -15,7 +15,6 @@ import cv2
 
 from cv_bridge import CvBridge
 from cv_bridge import CvBridgeError
-from rclpy.node import Node
 
 
 class ArUco:

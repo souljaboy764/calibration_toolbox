@@ -2,11 +2,6 @@ from calibration_toolbox.axxb import AXXBCalibrator
 from calibration_toolbox.utils import *
 
 import argparse
-import tf2_ros
-import tf_transformations
-import geometry_msgs.msg
-import rclpy
-import time
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
