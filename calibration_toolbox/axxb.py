@@ -7,6 +7,7 @@ from __future__ import print_function, division
 import numpy as np
 import os
 import yaml
+import itertools
 
 from calibration_toolbox.utils import *
 
@@ -93,27 +94,31 @@ class AXXBCalibrator(object):
         assert len(self.robot_poses) == len(self.marker_poses), 'robot poses and marker poses are not of the same length!'
 
         n = len(self.robot_poses)
-        pose_inds= np.arange(n)
-        np.random.shuffle(pose_inds)
+        # np.random.shuffle(pose_inds)
 
         print ("Total Pose: %i" % n)
-        A = np.zeros((4, 4, n-1))
-        B = np.zeros((4, 4, n-1))
-        alpha = np.zeros((3, n-1))
-        beta = np.zeros((3, n-1))
+        nC2 = n*(n-1)//2
+        pose_inds = [i for i in itertools.combinations(np.arange(n), 2)]
+        print ("Total Combinations: %i" % nC2, len(pose_inds))
+        
+        A = np.zeros((4, 4, nC2))
+        B = np.zeros((4, 4, nC2))
+        alpha = np.zeros((3, nC2))
+        beta = np.zeros((3, nC2))
 
         M = np.zeros((3, 3))
 
-        for i in range(n-1):
+        # for i in range(n-1):
+        for i in range(len(pose_inds)):
             if self.option == "EH":
-                A[:, :, i] = np.matmul(pose_inv(self.robot_poses[pose_inds[i+1]]), self.robot_poses[pose_inds[i]])
-                B[:, :, i] = np.matmul(self.marker_poses[pose_inds[i+1]], pose_inv(self.marker_poses[pose_inds[i]]))
+                A[:, :, i] = np.matmul(pose_inv(self.robot_poses[pose_inds[i][1]]), self.robot_poses[pose_inds[i][0]])
+                B[:, :, i] = np.matmul(self.marker_poses[pose_inds[i][1]], pose_inv(self.marker_poses[pose_inds[i][0]]))
             elif self.option == "EBME":
-                A[:, :, i] = np.matmul(pose_inv(self.robot_poses[pose_inds[i+1]]), self.robot_poses[pose_inds[i]])
-                B[:, :, i] = np.matmul(pose_inv(self.marker_poses[pose_inds[i+1]]), self.marker_poses[pose_inds[i]])
+                A[:, :, i] = np.matmul(pose_inv(self.robot_poses[pose_inds[i][1]]), self.robot_poses[pose_inds[i][0]])
+                B[:, :, i] = np.matmul(pose_inv(self.marker_poses[pose_inds[i][1]]), self.marker_poses[pose_inds[i][0]])
             elif self.option == "EBCB":
-                A[:, :, i] = np.matmul(self.robot_poses[pose_inds[i+1]], pose_inv(self.robot_poses[pose_inds[i]]))
-                B[:, :, i] = np.matmul(self.marker_poses[pose_inds[i+1]], pose_inv(self.marker_poses[pose_inds[i]]))
+                A[:, :, i] = np.matmul(self.robot_poses[pose_inds[i][1]], pose_inv(self.robot_poses[pose_inds[i][0]]))
+                B[:, :, i] = np.matmul(self.marker_poses[pose_inds[i][1]], pose_inv(self.marker_poses[pose_inds[i][0]]))
 
             alpha[:, i] = get_mat_log(A[:3, :3, i])
             beta[:, i] = get_mat_log(B[:3, :3, i])
